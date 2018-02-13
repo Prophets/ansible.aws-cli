@@ -1,0 +1,56 @@
+---
+- name: Install Python PIP
+  apt:
+    pkg: python-pip
+    state: latest
+
+- name: Install PIP virtualenv package
+  pip:
+    name: virtualenv
+
+- name: Install AWS CLI for aws cli user
+  become: yes
+  become_user: "{{ aws_cli_user }}"
+  pip:
+    name: awscli
+    state: latest
+    virtualenv: ~/cli-venv
+
+- name: Symlink aws PIP binary
+  become: yes
+  become_user: "{{ aws_cli_user }}"
+  file:
+    path: ~/bin
+    state: directory
+
+- name: Symlink aws PIP binary
+  become: yes
+  become_user: "{{ aws_cli_user }}"
+  file:
+    path: ~/bin/aws
+    state: link
+    src: ~/cli-venv/bin/aws
+
+- name: Create the AWS settings directory
+  file:
+    path: "{{ aws_cli_user_home_dir }}/.aws"
+    state: directory
+    owner: "{{ aws_cli_user }}"
+    group: "{{ aws_cli_user }}"
+    mode: 0755
+
+- name: AWS CLI configuration
+  template:
+    src: aws_cli_config.j2
+    dest: "{{ aws_cli_user_home_dir }}/.aws/config"
+    owner: "{{ aws_cli_user }}"
+    group: "{{ aws_cli_user }}"
+    mode: 0644
+
+- name: AWS CLI credentials
+  template:
+    src: aws_cli_credentials.j2
+    dest: "{{ aws_cli_user_home_dir }}/.aws/credentials"
+    owner: "{{ aws_cli_user }}"
+    group: "{{ aws_cli_user }}"
+    mode: 0644
